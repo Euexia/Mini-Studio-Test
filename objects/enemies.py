@@ -8,9 +8,9 @@ from objects.spaceship import *
 
 
 # Load images
-RED_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_red_small.png"))
-GREEN_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_green_small.png"))
-BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_blue_small.png"))
+RED_SPACE_SHIP = pygame.image.load(os.path.join("assets", "spaceships_e_1.png"))
+GREEN_SPACE_SHIP = pygame.image.load(os.path.join("assets", "spaceships_e_2.png"))
+BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "spaceships_e_3.png"))
 
 # Laser
 RED_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_red.png"))
