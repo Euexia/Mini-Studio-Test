@@ -36,16 +36,15 @@ def read_high_scores():
 def write_high_scores(scores):
     with open(HIGH_SCORE_FILE, "w") as f:
         for score in scores:
-            f.write(str(scores) + "\n")
+            f.write(str(score) + "\n")
 
 def update_high_scores(new_score):
     scores = read_high_scores()
-    scores.append(new_score) 
+    scores.append(new_score)
     scores.sort(reverse=True)
     scores = scores[:5]  # Gardez les 5 meilleurs scores
     write_high_scores(scores)
     return scores
-
 
 def show_high_scores():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -104,7 +103,7 @@ def main():
     FPS = 60
     level = 0
     lives = 5
-    score = 0
+    score = 100
     main_font = pygame.font.SysFont("comicsans", 50)
     lost_font = pygame.font.SysFont("comicsans", 60)
 
@@ -151,6 +150,7 @@ def main():
             lost_count += 1
             name = enter_name()
             update_high_scores(int(score))
+            main_menu()
 
         if lost:
             if lost_count > FPS * 3:

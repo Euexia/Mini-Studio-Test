@@ -12,7 +12,6 @@ YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "spaceships.png"))
 YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
 
 
-
 class Player(Ship):
     def __init__(self, x, y, health=100):
         super().__init__(x, y, health)
