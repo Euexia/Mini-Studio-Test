@@ -5,13 +5,12 @@ import sys
 import random
 pygame.font.init()
 
-from moviepy.editor import VideoFileClip
-import imageio
+
 from objects.enemies import *
 from objects.spaceship import *
 from objects.player import *
 from settings import *
-import numpy as np
+
 
 
 WHITE = (255, 255, 255)
@@ -188,15 +187,9 @@ def planet_menu():
         WIN.blit(planet5_image, planet5_rect)
         WIN.blit(arrow_image, arrow_rect)
         pygame.display.update()
-        # Afficher la flèche
+
     
 
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                # Vérifier si la souris est en collision avec la flèche
-                if arrow_rect.collidepoint(mouse_pos):
-                    run = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -204,7 +197,6 @@ def planet_menu():
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
-                # If the player clicks on the planet, launch the appropriate level
                 if planet1_rect.collidepoint(mouse_pos):
                     BG = pygame.image.load("assets/background_level1.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
@@ -225,8 +217,21 @@ def planet_menu():
                     BG = pygame.image.load("assets/background_level5.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
                     launch_game(5)
+                elif arrow_rect.collidepoint(mouse_pos):
+                    run = False
+                    break
+BOSS_IMG = pygame.image.load(os.path.join("assets/pixel_ship_red_small.png"))
+class Boss(Enemy):
+    def __init__(self, x, y, color):
+        super().__init__(x, y, color)
+        self.img = BOSS_IMG
+        self.mask = pygame.mask.from_surface(self.img)
+        self.health = 100
+        self.lasers = []
+        self.cool_down_counter = 0
 
-
+    def move(self, vel):
+        self.y += vel
 
 def launch_game(level):
     global run, BG
@@ -238,10 +243,6 @@ def launch_game(level):
     main_font = pygame.font.SysFont("comicsans", 50)
     lost_font = pygame.font.SysFont("comicsans", 60)
 
-    enemies = []
-    wave_length = 5
-    enemy_vel = 1
-
     player_vel = 8
     laser_vel = 6
 
@@ -252,14 +253,27 @@ def launch_game(level):
     lost = False
     lost_count = 0
 
+    # Définir les variables de vagues
+    enemies = []
+    wave_length = 5
+    enemy_vel = 1
+    wave = 0
+    max_waves = 5
+    won = False
+    win_time = None
+    boss = None
+    boss_vel = 3
+
     def redraw_window():
         WIN.blit(BG, (0, 0))
         # Afficher le texte
         lives_label = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
         level_label = main_font.render(f"Level: {level}", 1, (255, 255, 255))
+        wave_label = main_font.render(f"Wave: {wave}/{max_waves}", 1, (255, 255, 255))
 
         WIN.blit(lives_label, (10, 10))
         WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
+        WIN.blit(wave_label, (WIDTH / 2 - wave_label.get_width() / 2, 10))
 
         for enemy in enemies:
             enemy.draw(WIN)
@@ -276,26 +290,54 @@ def launch_game(level):
         clock.tick(FPS)
         redraw_window()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    pause_game()
+     # Si toutes les vagues sont terminées, afficher un message de victoire
+        if wave == 5:
+            winning_bg = pygame.image.load("assets/background_menu.png")
+            scaled_bg = pygame.transform.scale(winning_bg, (WIDTH, HEIGHT))
+            WIN.blit(scaled_bg, (0, 0))
+            win_label = lost_font.render("You Win!!", 1, (255, 255, 255))
+            WIN.blit(win_label, (WIDTH / 2 - win_label.get_width() / 2, 350))
+            pygame.display.update()
+            won = True
 
-        if lost:
-            if lost_count > FPS * 3:
-                run = False
-            else:
-                continue
+        if won and win_time is None:
+            win_time = pygame.time.get_ticks()
+
+        if win_time is not None and pygame.time.get_ticks() > win_time + 6000:
+            return
+
+        # if wave == 5 and not boss:
+        #     boss = Boss(WIDTH/2 - 50, -150, "red")
+        #     enemies.append(boss)
+
+        # if boss:
+        #     boss.move(boss_vel)
+        #     boss.move_lasers(laser_vel, player)
+        # if random.randrange(0, 2 * 60) == 1:
+        #     boss.shoot()
+        # if collide(boss, player):
+        #     player.health -= 20
+        # if boss.health <= 0:
+        #     enemies.remove(boss)
+        #     boss = None
+        #     wave += 1
+        #     wave_length += 5
+        #     enemy_vel += 1
+        #     for i in range(wave_length):
+        #         enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "blue", "green"]))
+        #         enemies.append(enemy)
 
         if len(enemies) == 0:
-            level += 0
+            wave += 1
             wave_length += 5
             for i in range(wave_length):
-                enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
-                              random.choice(["red", "blue", "green"]))
+                enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "blue", "green"]))
                 enemies.append(enemy)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_p]:
@@ -328,7 +370,7 @@ def launch_game(level):
         player.move_lasers(-laser_vel, enemies)
 
 
-
+# -----------------------------------------------------------------------------------------------------
 def main_menu():
     # définir les polices de caractères
     title_font = pygame.font.SysFont("Serif Bold", 90)
@@ -345,20 +387,20 @@ def main_menu():
         title_label = title_font.render("CyberSpace Chaos", 1, (255,255,255))
         WIN.blit(title_label, (WIDTH/2 - title_label.get_width()/2, 200))
 
-        # Ajoutez un bouton pour jouer le jeu
-        play_button = pygame.Rect(0, 0, 200, 50)
-        play_button.center = (WIDTH/2, 400)
-        play_button_surf = pygame.Surface(play_button.size, pygame.SRCALPHA)
-        pygame.draw.rect(play_button_surf, (255, 0, 0, 0), play_button_surf.get_rect())
-        WIN.blit(play_button_surf, play_button)
-        play_label = button_font.render("Play", 1, (255, 255, 255))
-        WIN.blit(play_label, (play_button.centerx - play_label.get_width()/2, play_button.centery - play_label.get_height()/2))
+        # Ajoutez un bouton pour sélectionner une planète
+        planet_button = pygame.Rect(0, 0, 200, 50)
+        planet_button.center = (WIDTH/2, 400)
+        planet_button_surf = pygame.Surface(planet_button.size, pygame.SRCALPHA)
+        pygame.draw.rect(planet_button_surf, (255, 0, 0, 0), planet_button_surf.get_rect())
+        WIN.blit(planet_button_surf, planet_button)
+        planet_label = button_font.render("Select a planet", 1, (255, 255, 255))
+        WIN.blit(planet_label, (planet_button.centerx - planet_label.get_width()/2, planet_button.centery - planet_label.get_height()/2))
 
         score_button = pygame.Rect(0, 0, 200, 50)
         score_button.center = (WIDTH/2, 500)
         score_button_surf = pygame.Surface(score_button.size, pygame.SRCALPHA)
         pygame.draw.rect(score_button_surf, (255, 0, 0, 0), score_button_surf.get_rect())
-        WIN.blit(score_button_surf, play_button)
+        WIN.blit(score_button_surf, planet_button)
         score_label = button_font.render("Highscore", 1, (255, 255, 255))
         WIN.blit(score_label, (score_button.centerx - score_label.get_width()/2, score_button.centery - score_label.get_height()/2))
 
@@ -370,16 +412,6 @@ def main_menu():
         WIN.blit(quit_button_surf, quit_button)
         quit_label = button_font.render("Quit", 1, (255, 255, 255))
         WIN.blit(quit_label, (quit_button.centerx - quit_label.get_width()/2, quit_button.centery - quit_label.get_height()/2))
- # Ajoutez un bouton pour sélectionner une planète
-        planet_button = pygame.Rect(0, 0, 400, 50)
-        planet_button.center = (WIDTH/2, 800)
-        planet_button_surf = pygame.Surface(planet_button.size, pygame.SRCALPHA)
-        pygame.draw.rect(planet_button_surf, (255, 0, 0, 0), planet_button_surf.get_rect())
-        WIN.blit(planet_button_surf, planet_button)
-        planet_label = button_font.render("Select a planet", 1, (255, 255, 255))
-        WIN.blit(planet_label, (planet_button.centerx - planet_label.get_width()/2, planet_button.centery - planet_label.get_height()/2))
-
-        # Vérifiez si le bouton "Select a planet" a été cliqué
         mouse_pos = pygame.mouse.get_pos()
         if planet_button.collidepoint(mouse_pos):
             if pygame.mouse.get_pressed()[0]:
@@ -397,12 +429,11 @@ def main_menu():
                 mouse_pos = pygame.mouse.get_pos()
 
                 # Si le joueur clique sur le bouton pour jouer, lancez le jeu
-                if play_button.collidepoint(mouse_pos):
+                if planet_button.collidepoint(mouse_pos):
                     planet_menu()
                 elif score_button.collidepoint(mouse_pos):
                     show_high_scores()
-                elif planet_button.collidepoint(mouse_pos):
-                    planet_menu()
+             
                 # Si le joueur clique sur le bouton pour quitter, quittez le programme
                 elif quit_button.collidepoint(mouse_pos):
                     pygame.quit()
