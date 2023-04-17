@@ -3,6 +3,8 @@ import os
 import time
 import sys
 import random
+import spritesheet
+
 pygame.font.init()
 
 from s_planete_1 import animation_sprite_p
@@ -77,6 +79,10 @@ def show_high_scores():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = event.pos
+                if arrow_rect.collidepoint(mouse_pos):
+                    main_menu()
 
         pygame.display.flip()
 
@@ -156,22 +162,58 @@ BG = pygame.transform.scale(BG, (WIDTH, HEIGHT))
 def planet_menu():
     global BG
     
+    sprite_sheet_image_1 = pygame.image.load('stylesheet_planete1.png').convert_alpha()
+    sprite_sheet_1 = spritesheet.SpriteSheet(sprite_sheet_image_1)
+    sprite_sheet_image_2 = pygame.image.load('stylesheet_planete2.png').convert_alpha()
+    sprite_sheet_2 = spritesheet.SpriteSheet(sprite_sheet_image_2)
+    sprite_sheet_image_3 = pygame.image.load('stylesheet_blackhole1.png').convert_alpha()
+    sprite_sheet_3 = spritesheet.SpriteSheet(sprite_sheet_image_3)
+    sprite_sheet_image_4 = pygame.image.load('stylesheet_planete_4.png').convert_alpha()
+    sprite_sheet_4 = spritesheet.SpriteSheet(sprite_sheet_image_4)
+    sprite_sheet_image_5 = pygame.image.load('stylesheet_planete5.png').convert_alpha()
+    sprite_sheet_5 = spritesheet.SpriteSheet(sprite_sheet_image_5)
+
+    animation_list_1 = []
+    animation_list_2 = []
+    animation_list_3 = []
+    animation_list_4 = []
+    animation_list_5 = []   
+    animation_steps = 50
+    last_update = pygame.time.get_ticks()
+    a_cooldown = 100
+    frame=0 
+    for x in range (animation_steps):
+        planet1_image = sprite_sheet_1.get_image(x, 100, 100, 3, BLACK)
+        animation_list_1.append(planet1_image)
+
+        planet2_image = sprite_sheet_2.get_image(x, 100, 100, 3, BLACK)
+        animation_list_2.append(planet2_image)
+
+        planet3_image = sprite_sheet_3.get_image(x, 200, 150, 3, BLACK)
+        animation_list_3.append(planet3_image)
+
+        planet4_image = sprite_sheet_4.get_image(x, 200, 150, 3, BLACK)
+        animation_list_4.append(planet4_image)
+
+        planet5_image = sprite_sheet_5.get_image(x, 300, 300, 3, BLACK)
+        animation_list_5.append(sprite_sheet_5.get_image(x, 300, 300, 3, BLACK))
+
 
    # Load the images of the planets and scale them
-    planet1_image = pygame.image.load("assets/planet1.png")
-    planet1_image = pygame.transform.scale(planet1_image, (200, 200))
+    #planet1_image = pygame.image.load("assets/planet1.png")
+    #planet1_image = pygame.transform.scale(planet1_image, (200, 200))
     
-    planet2_image = pygame.image.load("assets/planet2.png")
-    planet2_image = pygame.transform.scale(planet2_image, (400, 400))
-    
-    planet3_image = pygame.image.load("assets/planet3.png")
-    planet3_image = pygame.transform.scale(planet3_image, (200, 200))
-    
-    planet4_image = pygame.image.load("assets/planet4.png")
-    planet4_image = pygame.transform.scale(planet4_image, (400, 400))
-    
-    planet5_image = pygame.image.load("assets/planet5.png")
-    planet5_image = pygame.transform.scale(planet5_image, (400, 400))
+    #planet2_image = pygame.image.load("assets/planet2.png")
+    #planet2_image = pygame.transform.scale(planet2_image, (400, 400))
+    #
+    #planet3_image = pygame.image.load("assets/planet3.png")
+    #planet3_image = pygame.transform.scale(planet3_image, (200, 200))
+    #
+    #planet4_image = pygame.image.load("assets/planet4.png")
+    #planet4_image = pygame.transform.scale(planet4_image, (400, 400))
+    #
+    #planet5_image = pygame.image.load("assets/planet5.png")
+    #planet5_image = pygame.transform.scale(planet5_image, (400, 400))
 
 
     # Create the rectangles for each planet
@@ -189,15 +231,22 @@ def planet_menu():
 
     run = True
     while run:
-         # Reset BG to the menu background
+
+        current_time = pygame.time.get_ticks()
+        if current_time - last_update >= a_cooldown:
+            frame +=1
+            last_update = current_time
+            if frame >= 50:
+                frame = 0
+        # Reset BG to the menu background
         BG = pygame.image.load("assets/background_menu_planet.png").convert_alpha()
         BG = pygame.transform.scale(BG, (WIDTH, HEIGHT))
         WIN.blit(BG, (0, 0))
-        WIN.blit(planet1_image, planet1_rect)
-        WIN.blit(planet2_image, planet2_rect)
-        WIN.blit(planet3_image, planet3_rect)
-        WIN.blit(planet4_image, planet4_rect)
-        WIN.blit(planet5_image, planet5_rect)
+        WIN.blit(animation_list_1[frame],planet1_rect)
+        WIN.blit(animation_list_2[frame],planet2_rect)
+        WIN.blit(animation_list_3[frame],planet3_rect)
+        WIN.blit(animation_list_4[frame],planet4_rect)
+        WIN.blit(animation_list_5[frame],planet5_rect)
         WIN.blit(arrow_image, arrow_rect)
         pygame.display.update()
 
@@ -233,15 +282,15 @@ def planet_menu():
                 elif arrow_rect.collidepoint(mouse_pos):
                     run = False
                     break
-BOSS_IMG = pygame.image.load(os.path.join("assets/pixel_ship_red_small.png"))
-class Boss(Enemy):
-    def __init__(self, x, y, color):
-        super().__init__(x, y, color)
-        self.img = BOSS_IMG
-        self.mask = pygame.mask.from_surface(self.img)
-        self.health = 100
-        self.lasers = []
-        self.cool_down_counter = 0
+#BOSS_IMG = pygame.image.load(os.path.join("assets/pixel_ship_red_small.png"))
+#class Boss(Enemy):
+#    def __init__(self, x, y, color):
+#        super().__init__(x, y, color)
+#        self.img = BOSS_IMG
+#        self.mask = pygame.mask.from_surface(self.img)
+#        self.health = 100
+#        self.lasers = []
+#        self.cool_down_counter = 0
 
     def move(self, vel):
         self.y += vel
@@ -253,8 +302,8 @@ def main(level):
     lives = 5
 
     # Définir les polices de caractères
-    main_font = pygame.font.Font("researcher-researcher-bold-700.ttf", 50)
-    lost_font = pygame.font.Font("researcher-researcher-bold-700.ttf", 60)
+    main_font = pygame.font.Font("INVASION2000.TTF", 50)
+    lost_font = pygame.font.Font("INVASION2000.TTF", 60)
 
     player_vel = 8
     laser_vel = 6
@@ -266,7 +315,7 @@ def main(level):
     lost = False
     lost_count = 0
 
-    score =100
+    score = 100
 
     # Définir les variables de vagues
     enemies = []
@@ -300,6 +349,10 @@ def main(level):
         if lost:
             lost_label = lost_font.render("You Lost!!", 1, (255, 255, 255))
             WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
+            #pygame.time.wait(3000)
+            name = enter_name()
+            update_high_scores(int(score))
+            main_menu()
 
         pygame.display.update()
 
@@ -310,9 +363,7 @@ def main(level):
         if lives <= 0 or player.health <= 0:
             lost = True
             lost_count += 1
-            name = enter_name()
-            update_high_scores(int(score))
-            main_menu()
+
 
      # Si toutes les vagues sont terminées, afficher un message de victoire
         if wave == 5:
@@ -457,7 +508,6 @@ def main_menu():
                     planet_menu()
                 elif score_button.collidepoint(mouse_pos):
                     show_high_scores()
-             
                 # Si le joueur clique sur le bouton pour quitter, quittez le programme
                 elif quit_button.collidepoint(mouse_pos):
                     pygame.quit()

@@ -32,6 +32,7 @@ class Ship:
                 self.lasers.remove(laser)
             elif laser.collision(obj):
                 obj.health -= 10
+                #score +=10
                 self.lasers.remove(laser)
 
     def cooldown(self):
@@ -62,7 +63,7 @@ class Laser:
         self.mask = pygame.mask.from_surface(self.img)
 
     def draw(self, window):
-        window.blit(self.img, (self.x, self.y))
+        window.blit(self.img, (self.x+20, self.y))
 
     def move(self, vel):
         self.y += vel

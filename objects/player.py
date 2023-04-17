@@ -8,8 +8,9 @@ from objects.spaceship import *
 # Player player
 YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "spaceships.png"))
 
-
+#bullets = pygame.transform.scale(pygame.image.load("assets/stylesheet_laser_joueur_2.png"),(25,25))
 YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
+
 
 
 class Player(Ship):
