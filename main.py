@@ -21,6 +21,14 @@ HIGH_SCORE_FILE = "high_scores.txt"
 paused=False
 
     # ------------------------------------------------------------------
+
+def display_text(screen, text, size, x, y, color):
+    font = pygame.font.Font(None, size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect()
+    text_rect.center = (x, y)
+    screen.blit(text_surface, text_rect)
+
 def read_high_scores():
     if not os.path.exists(HIGH_SCORE_FILE):
         with open(HIGH_SCORE_FILE, "w") as f:
@@ -200,23 +208,23 @@ def planet_menu():
                 if planet1_rect.collidepoint(mouse_pos):
                     BG = pygame.image.load("assets/background_level1.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
-                    launch_game(1)
+                    main(1)
                 elif planet2_rect.collidepoint(mouse_pos):
                     BG = pygame.image.load("assets/background_level2.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
-                    launch_game(2)
+                    main(2)
                 elif planet3_rect.collidepoint(mouse_pos):
                     BG = pygame.image.load("assets/background_level3.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
-                    launch_game(3)
+                    main(3)
                 elif planet4_rect.collidepoint(mouse_pos):
                     BG = pygame.image.load("assets/background_level4.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
-                    launch_game(4)
+                    main(4)
                 elif planet5_rect.collidepoint(mouse_pos):
                     BG = pygame.image.load("assets/background_level5.png").convert_alpha()
                     BG= pygame.transform.scale(BG, (WIDTH, HEIGHT))
-                    launch_game(5)
+                    main(5)
                 elif arrow_rect.collidepoint(mouse_pos):
                     run = False
                     break
@@ -233,7 +241,7 @@ class Boss(Enemy):
     def move(self, vel):
         self.y += vel
 
-def launch_game(level):
+def main(level):
     global run, BG
     run = True
     FPS = 60
@@ -252,6 +260,8 @@ def launch_game(level):
 
     lost = False
     lost_count = 0
+
+    score =100
 
     # Définir les variables de vagues
     enemies = []
@@ -280,6 +290,8 @@ def launch_game(level):
 
         player.draw(WIN)
 
+
+
         if lost:
             lost_label = lost_font.render("You Lost!!", 1, (255, 255, 255))
             WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
@@ -289,6 +301,13 @@ def launch_game(level):
     while run:
         clock.tick(FPS)
         redraw_window()
+
+        if lives <= 0 or player.health <= 0:
+            lost = True
+            lost_count += 1
+            name = enter_name()
+            update_high_scores(int(score))
+            main_menu()
 
      # Si toutes les vagues sont terminées, afficher un message de victoire
         if wave == 5:
