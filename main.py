@@ -296,7 +296,7 @@ def planet_menu():
         self.y += vel
 
 def main(level):
-    global run, BG
+    global run, BG, SCORE
     run = True
     FPS = 60
     lives = 5
@@ -314,8 +314,6 @@ def main(level):
 
     lost = False
     lost_count = 0
-
-    score = 100
 
     # Définir les variables de vagues
     enemies = []
@@ -351,7 +349,7 @@ def main(level):
             WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
             #pygame.time.wait(3000)
             name = enter_name()
-            update_high_scores(int(score))
+            update_high_scores(int(SCORE))
             main_menu()
 
         pygame.display.update()

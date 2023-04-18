@@ -4,7 +4,7 @@ import time
 import random
 
 from objects.spaceship import *
-
+SCORE = 0
 # Player player
 YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "spaceships.png"))
 
@@ -22,6 +22,7 @@ class Player(Ship):
         self.max_health = health
 
     def move_lasers(self, vel, objs):
+        global SCORE
         self.cooldown()
         for laser in self.lasers:
             laser.move(vel)
@@ -30,6 +31,7 @@ class Player(Ship):
             else:
                 for obj in objs:
                     if laser.collision(obj):
+                        SCORE += 10
                         objs.remove(obj)
                         if laser in self.lasers:
                             self.lasers.remove(laser)
