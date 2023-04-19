@@ -14,6 +14,7 @@ from objects.player import *
 from settings import *
 
 
+FPS = 60
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -57,8 +58,12 @@ def update_high_scores(new_score):
 
 def show_high_scores():
     screen = pygame.display.set_mode((WIDTH,HEIGHT))
-    pygame.display.set_caption("Tableau des High Scores")
-    screen.fill(WHITE)
+    main_font = pygame.font.Font("INVASION2000.TTF", 50)
+
+    pygame.display.set_caption(main_font.render(f"Tableau des High scores", 1, (255, 255, 255)))
+    BG = pygame.image.load("assets/background_menu_planet.png").convert_alpha()
+    BG = pygame.transform.scale(BG, (WIDTH, HEIGHT))
+    WIN.blit(BG, (0, 0))
     mouse_pos = pygame.mouse.get_pos()
     arrow_image = pygame.image.load("assets/arrow.png")
     arrow_image = pygame.transform.scale(arrow_image, (50, 50))
@@ -70,10 +75,10 @@ def show_high_scores():
         if arrow_rect.collidepoint(mouse_pos):
             main_menu()
 
-        display_text(screen, "Tableau des High Scores", 40, WIDTH // 2, 50, BLACK)
+        display_text(screen, "Tableau des High Scores", 40, WIDTH // 2, 50, WHITE)
 
         for i, score in enumerate(high_scores, start=1):
-            display_text(screen, f"{i}. {score}", 30, WIDTH // 2, 100 + i * 40, BLACK)
+            display_text(screen, f"{i}. {score}", 30, WIDTH // 2, 100 + i * 40, WHITE)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -183,20 +188,20 @@ def planet_menu():
     a_cooldown = 100
     frame=0 
     for x in range (animation_steps):
-        planet1_image = sprite_sheet_1.get_image(x, 100, 100, 3, BLACK)
+        planet1_image = sprite_sheet_1.get_image(x, 100, 100, 2, BLACK)
         animation_list_1.append(planet1_image)
 
-        planet2_image = sprite_sheet_2.get_image(x, 100, 100, 3, BLACK)
+        planet2_image = sprite_sheet_2.get_image(x, 100, 100, 2, BLACK)
         animation_list_2.append(planet2_image)
 
-        planet3_image = sprite_sheet_3.get_image(x, 200, 150, 3, BLACK)
+        planet3_image = sprite_sheet_3.get_image(x, 200, 150, 2, BLACK)
         animation_list_3.append(planet3_image)
 
-        planet4_image = sprite_sheet_4.get_image(x, 200, 150, 3, BLACK)
+        planet4_image = sprite_sheet_4.get_image(x, 200, 150, 2, BLACK)
         animation_list_4.append(planet4_image)
 
-        planet5_image = sprite_sheet_5.get_image(x, 300, 300, 3, BLACK)
-        animation_list_5.append(sprite_sheet_5.get_image(x, 300, 300, 3, BLACK))
+        planet5_image = sprite_sheet_5.get_image(x, 300, 300, 2, BLACK)
+        animation_list_5.append(sprite_sheet_5.get_image(x, 300, 300, 2, BLACK))
 
 
    # Load the images of the planets and scale them
@@ -227,14 +232,15 @@ def planet_menu():
     arrow_image = pygame.image.load("assets/arrow.png")
     arrow_image = pygame.transform.scale(arrow_image, (50, 50))
     arrow_rect = arrow_image.get_rect(bottomleft=(50, HEIGHT-50))
-
+    clock = pygame.time.Clock()
 
     run = True
     while run:
-
+        clock.tick(FPS)
         current_time = pygame.time.get_ticks()
-        if current_time - last_update >= a_cooldown:
+        if current_time - last_update >= a_cooldown or last_update == 0:
             frame +=1
+            
             last_update = current_time
             if frame >= 50:
                 frame = 0
@@ -281,7 +287,7 @@ def planet_menu():
                     main(5)
                 elif arrow_rect.collidepoint(mouse_pos):
                     run = False
-                    break
+                    main_menu()
 #BOSS_IMG = pygame.image.load(os.path.join("assets/pixel_ship_red_small.png"))
 #class Boss(Enemy):
 #    def __init__(self, x, y, color):
@@ -298,7 +304,8 @@ def planet_menu():
 def main(level):
     global run, BG, SCORE
     run = True
-    FPS = 60
+    global FPS
+    FPS =60
     lives = 5
 
     # Définir les polices de caractères
