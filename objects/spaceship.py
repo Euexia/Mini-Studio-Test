@@ -4,7 +4,7 @@ import time
 import random
 
 
-from settings import *
+WIDTH, HEIGHT = 1000, 900
 
 
 class Ship:
@@ -77,6 +77,12 @@ class Laser:
 
 
 def collide(obj1, obj2):
-    offset_x = obj2.x - obj1.x
-    offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+    if obj1 is None or obj2 is None:
+        return False
+    offset = (int(obj2.x - obj1.x), int(obj2.y - obj1.y))
+    result = obj1.mask.overlap(obj2.mask, offset)
+
+    if result:
+        return True
+    else:
+        return False

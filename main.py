@@ -288,18 +288,171 @@ def planet_menu():
                 elif arrow_rect.collidepoint(mouse_pos):
                     run = False
                     main_menu()
-#BOSS_IMG = pygame.image.load(os.path.join("assets/pixel_ship_red_small.png"))
-#class Boss(Enemy):
-#    def __init__(self, x, y, color):
-#        super().__init__(x, y, color)
-#        self.img = BOSS_IMG
-#        self.mask = pygame.mask.from_surface(self.img)
-#        self.health = 100
-#        self.lasers = []
-#        self.cool_down_counter = 0
 
     def move(self, vel):
         self.y += vel
+
+BOSS_IMG = pygame.image.load(os.path.join("assets/boss.png"))
+class Boss:
+    def __init__(self, x, y, img_path):
+        self.x = x
+        self.y = y + 350
+        self.health = 500
+        self.vel = 2
+        self.direction = "droite"
+        self.img = pygame.image.load(img_path)
+        self.mask = pygame.mask.from_surface(self.img)
+        self.lasers = []
+        self.laser_img = pygame.image.load("assets/pixel_laser_red.png")
+        self.cool_down_counter = 0
+
+    def draw(self, window):
+        window.blit(self.img, (self.x, self.y))
+    
+    def move(self, vel):
+        if self.direction == "droite":
+            self.x += vel
+            if self.x + self.img.get_width() > pygame.display.Info().current_w:
+                self.direction = "gauche"
+        else:
+            self.x -= vel
+            if self.x < 0:
+                self.direction = "droite"
+
+    def shoot(self):
+        if self.cool_down_counter == 0:
+            laser = Laser(self.x - 20, self.y, self.laser_img)
+            self.lasers.append(laser)
+            self.cool_down_counter = 1
+
+    def shoot_2(self):
+        if self.cool_down_counter == 0:
+            laser1 = Laser(self.x - 40, self.y, self.laser_img)
+            laser2 = Laser(self.x, self.y, self.laser_img)
+            self.lasers.append(laser1)
+            self.lasers.append(laser2)
+            self.cool_down_counter = 1
+
+    def move_lasers(self, vel, obj):
+        for laser in self.lasers:
+            laser.move(vel)
+            if laser.off_screen(HEIGHT):
+                self.lasers.remove(laser)
+            elif laser.collision(obj):
+                obj.health -= 10
+                self.lasers.remove(laser)
+            elif len(self.lasers) == 2 and laser == self.lasers[0] and self.lasers[1].off_screen(HEIGHT):
+                self.lasers.remove(laser)
+                break
+
+
+def start_boss(level):
+    global run, BG
+    run = True
+    FPS = 60
+    lives = 5
+
+    # Définir les polices de caractères
+    main_font = pygame.font.SysFont("comicsans", 50)
+    lost_font = pygame.font.SysFont("comicsans", 60)
+
+    player_vel = 8
+    laser_vel = 10
+
+    player = Player(300, 630)
+
+    clock = pygame.time.Clock()
+
+    lost = False
+    lost_count = 0
+
+    # Définir les variables du boss
+    boss = Boss(WIDTH / 2 - 50, -300, "assets/boss.png")
+    boss_vel = 2
+    boss_laser_vel = 8
+
+    while run:
+        clock.tick(FPS)
+
+        # Gérer les événements
+        
+    # Gérer les événements
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    planet_menu()
+
+
+        # Déplacer le boss
+        boss.move(boss_vel)
+
+        # Dessiner les éléments du jeu
+        WIN.blit(BG, (0, 0))
+        lives_label = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
+        level_label = main_font.render(f"Level: {level}", 1, (255, 255, 255))
+        WIN.blit(lives_label, (10, 10))
+        WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+    
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_p]:
+            pause_game()
+    
+        if keys[pygame.K_q] and player.x - player_vel > 0:  # left
+            player.x -= player_vel
+        if keys[pygame.K_d] and player.x + player_vel + player.get_width() < WIDTH:  # right
+            player.x += player_vel
+        if keys[pygame.K_z] and player.y - player_vel > 0:  # up
+            player.y -= player_vel
+        if keys[pygame.K_s] and player.y + player_vel + player.get_height() + 15 < HEIGHT:  # down
+            player.y += player_vel
+    
+        if keys[pygame.K_SPACE]:
+            player.shoot()
+    
+    
+        # Vérifier si le joueur est touché par un laser du boss
+        if collide(player, boss):
+            player.health -= 10
+
+        # Vérifier si le boss a été touché par un laser du joueur
+        for laser in player.lasers:
+            if collide(laser, boss):
+                player.lasers.remove(laser)
+                boss.health -= 10
+
+        # Si le boss a perdu tous ses points de vie, arrêter la boucle de jeu et revenir au menu principal
+        if boss.health <= 0:
+            planet_menu()
+
+        # Si le joueur n'a plus de points de vie, afficher un message de défaite
+        if player.health <= 0:
+            lost = True
+            lost_count += 1
+
+        # Si le joueur a perdu trois fois, arrêter la boucle de jeu et revenir au menu principal
+        if lost:
+            if lost_count > FPS * 3:
+                planet_menu()
+            else:
+                lost_label = lost_font.render("You Lost!!", 1, (255, 255, 255))
+                WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
+        else:
+            player.move_lasers(-laser_vel, [])
+            player.draw(WIN)
+
+        boss.move_lasers(boss_laser_vel, player)
+        boss.draw(WIN)
+
+        pygame.display.update()
+
 
 def main(level):
     global run, BG, SCORE
@@ -370,58 +523,29 @@ def main(level):
             lost_count += 1
 
 
-     # Si toutes les vagues sont terminées, afficher un message de victoire
-        if wave == 5:
-            winning_bg = pygame.image.load("assets/background_menu.png")
-            scaled_bg = pygame.transform.scale(winning_bg, (WIDTH, HEIGHT))
-            WIN.blit(scaled_bg, (0, 0))
-            win_label = lost_font.render("You Win!!", 1, (255, 255, 255))
-            WIN.blit(win_label, (WIDTH / 2 - win_label.get_width() / 2, 350))
-            pygame.display.update()
-            won = True
-
+# Si toutes les vagues sont terminées, afficher un message de victoire
         if won and win_time is None:
             win_time = pygame.time.get_ticks()
-
+    
         if win_time is not None and pygame.time.get_ticks() > win_time + 6000:
             return
-
-        # if wave == 5 and not boss:
-        #     boss = Boss(WIDTH/2 - 50, -150, "red")
-        #     enemies.append(boss)
-
-        # if boss:
-        #     boss.move(boss_vel)
-        #     boss.move_lasers(laser_vel, player)
-        # if random.randrange(0, 2 * 60) == 1:
-        #     boss.shoot()
-        # if collide(boss, player):
-        #     player.health -= 20
-        # if boss.health <= 0:
-        #     enemies.remove(boss)
-        #     boss = None
-        #     wave += 1
-        #     wave_length += 5
-        #     enemy_vel += 1
-        #     for i in range(wave_length):
-        #         enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "blue", "green"]))
-        #         enemies.append(enemy)
-
-        if len(enemies) == 0:
+    
+        if len(enemies) == 0 and wave < max_waves:
             wave += 1
             wave_length += 5
             for i in range(wave_length):
                 enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "blue", "green"]))
                 enemies.append(enemy)
-
+    
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
+    
         keys = pygame.key.get_pressed()
         if keys[pygame.K_p]:
             pause_game()
+    
         if keys[pygame.K_q] and player.x - player_vel > 0:  # left
             player.x -= player_vel
         if keys[pygame.K_d] and player.x + player_vel + player.get_width() < WIDTH:  # right
@@ -430,23 +554,34 @@ def main(level):
             player.y -= player_vel
         if keys[pygame.K_s] and player.y + player_vel + player.get_height() + 15 < HEIGHT:  # down
             player.y += player_vel
+    
         if keys[pygame.K_SPACE]:
             player.shoot()
+    
+        
 
+
+        if wave == max_waves:
+            start_boss(1)
+            boss_present = True
+            if random.randrange(0, 2 * 30) == 1:
+                Boss.shoot_1()
+                Boss.shoot_2()
+    
         for enemy in enemies[:]:
             enemy.move(enemy_vel)
             enemy.move_lasers(laser_vel, player)
-
+    
             if random.randrange(0, 2 * 60) == 1:
                 enemy.shoot()
-
+    
             if collide(enemy, player):
                 player.health -= 10
                 enemies.remove(enemy)
             elif enemy.y + enemy.get_height() > HEIGHT:
                 lives -= 1
                 enemies.remove(enemy)
-
+    
         player.move_lasers(-laser_vel, enemies)
 
 
